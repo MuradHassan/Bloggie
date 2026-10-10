@@ -1,0 +1,195 @@
+﻿@model List<Bloggie.Web.Models.Domain.Tag>
+
+@{
+    ViewData["Title"] = "Tags";
+}
+
+
+@* Header *@
+<div class="bg-secondary bg-opacity-10 py-2">
+    <div class="container">
+        <h1>
+            Tags - Admin Functionality
+        </h1>
+    </div>
+</div>
+
+@* Search & Add *@
+<div class="container mt-5 mb-4">
+    <div class="row justify-content-between">
+
+        @* Search *@
+        <div class="col-lg-4">
+            <form method="get" asp-controller="Tags" asp-action="List">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="searchQuery" value="@ViewBag.SearchQuery" class="form-control rounded-end rounded-pill shadow-none" />
+                    <button class="btn btn-dark shadow-none rounded-start rounded-pill" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @* Add Button *@
+        <div class="col-lg-6 justify-content-end text-end">
+            <a class="btn btn-dark btn-lg" asp-controller="Tags" asp-action="Add">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+@* Tags List *@
+<div class="container">
+    @if (Model != null && Model.Any())
+    {
+        @* Table *@
+        <table class="table table-striped text-center">
+            <thead class="bg-dark text-light">
+                <tr>
+                    <th>Id</th>
+                    <th>
+                        Name
+                        <span>
+                            @if (ViewBag.Sort == "Asc")
+                            {
+                                <span>
+                                    <a class="text-light"
+                                       asp-controller="Tags"
+                                       asp-action="List"
+                                       asp-route-sort="Desc"
+                                       asp-route-searchQuery="@ViewBag.SearchQuery"
+                                       asp-route-pageNumber="@(ViewBag.CurrentPage)">
+                                        <i class="bi bi-arrow-down"></i>
+                                    </a>
+                                </span>
+                            }
+                            else if (ViewBag.Sort == "Desc")
+                            {
+                                <span>
+                                    <a class="text-light"
+                                       asp-controller="Tags"
+                                       asp-action="List"
+                                       asp-route-sort="Asc"
+                                       asp-route-searchQuery="@ViewBag.SearchQuery"
+                                       asp-route-pageNumber="@(ViewBag.CurrentPage)">
+                                        <i class="bi bi-arrow-up"></i>
+                                    </a>
+                                </span>
+                            }
+
+                        </span>
+                    </th>
+                    <th>Display Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var tag in Model)
+                {
+                    <tr>
+                        <td>@tag.Id</td>
+                        <td>@tag.Name</td>
+                        <td>@tag.DisplayName</td>
+                        <td>
+                            <a class="btn btn-warning me-2"
+                               asp-controller="Tags"
+                               asp-action="Edit"
+                               asp-route-id="@tag.Id">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <button class="btn btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-id="@tag.Id">
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @* Pagination *@
+        <nav aria-label="Page navigation example" class=" d-flex justify-content-center mt-4">
+            <ul class="pagination">
+
+                @* Previous *@
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link text-light shadow-none @(ViewBag.CurrentPage == 1 ? "bg-secondary" : "bg-dark")"
+                       asp-action="List"
+                       asp-route-pageNumber="@(ViewBag.CurrentPage - 1)"
+                       asp-route-search="@ViewBag.Search"
+                       asp-route-sort="@ViewBag.Sort">
+                        Previous
+                    </a>
+                </li>
+
+                @* Page Numbers *@
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item  @(i == ViewBag.CurrentPage ? "disabled" : "") ">
+                        <a class="page-link shadow-none @(i == ViewBag.CurrentPage ? "bg-secondary" : "bg-dark") text-light "
+                           asp-action="List"
+                           asp-route-pageNumber="@i"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-sort="@ViewBag.Sort">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                @* Next *@
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link text-light shadow-none @(ViewBag.CurrentPage == ViewBag.TotalPages ? "bg-secondary" : "bg-dark")"
+                       asp-action="List"
+                       asp-route-pageNumber="@(ViewBag.CurrentPage + 1)"
+                       asp-route-search="@ViewBag.Search"
+                       asp-route-sort="@ViewBag.Sort">
+                        Next
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+    }
+    else
+    {
+        <p>No tags found!</p>
+    }
+
+</div>
+
+@* Delete Modal *@
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-controller="Tags" asp-action="Delete">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Delete Tag</h1>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="deleteId" />
+                    <p>Are you sure delete this Tagr?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    document.getElementById('deleteModal').addEventListener('show.bs.modal', function (event)
+    {
+
+        const button = event.relatedTarget;
+        document.getElementById('deleteId').value = button.getAttribute('data-id');
+
+    });
+</script>

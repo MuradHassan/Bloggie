@@ -1,0 +1,256 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> _signInManager
+@inject UserManager<IdentityUser> _userManager
+@model Bloggie.Web.Models.ViewModels.BlogDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.PageTitle;
+}
+
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-6">
+
+
+            @if (Model != null)
+            {
+                @* Blog Header *@
+                <h1 class="mb-3">@Model.Heading</h1>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-secondary">@Model.Author</span>
+                    <span class="text-secondary">@Model.PublishedDate.ToShortDateString()</span>
+                </div>
+
+                @* Tags *@
+                <div class="mb-3 d-flex justify-content-center">
+                    @foreach (var tag in Model.Tags)
+                    {
+                        <Span class="badge bg-secondary me-1">@tag.Name</Span>
+                    }
+                </div>
+
+                @* Blog Image *@
+                <img src="@Model.FeaturedImageUrl" class="d-block img-fluid mb-3" />
+
+                @* Blog Content *@
+                <div class="mb-3 blog-details-content">@Html.Raw(@Model.Content)</div>
+
+                @* Likes *@
+                <div class="mb-3 ">
+
+                    @if (_signInManager.IsSignedIn(User))
+                    {
+                        <a id="btnLike" style="cursor: pointer;">
+                            <i class="bi @(Model.Liked ? "bi-hand-thumbs-up-fill" : "bi-hand-thumbs-up") fs-4"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-danger">Please log in to like or comment on this post.</p>
+                    }
+                    <span id="likes">@Model.TotalLikes</span> likes
+                </div>
+
+                @* Comments *@
+                <div class="card">
+
+                    @* Add Comment *@
+                    <div class="card-header">
+                        <h5>Add Comment</h5>
+                        @if (_signInManager.IsSignedIn(User))
+                        {
+                            <form method="post" asp-controller="Comments" asp-action="Add">
+                                <div class="mb-3">
+                                    <lable class="form-label">Comment Description</lable>
+                                    <input type="text" class="form-control shadow-none" name="Description" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <button type="submit" class="btn btn-dark">Add</button>
+                                    <input type="hidden" asp-for="Id" name="BlogPostId" />
+                                    <input type="hidden" asp-for="UrlHandle" name="UrlHandle" />
+                                </div>
+                            </form>
+                        }
+                    </div>
+
+                    @* Comments List *@
+                    <div class="card-body">
+                        @if (Model.Comments != null && Model.Comments.Any())
+                        {
+                            @foreach (var comment in Model.Comments)
+                            {
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-secondary">@comment.UserName</span>
+                                            <span class="text-secondary">@comment.DateAdded.ToShortDateString()</span>
+                                        </div>
+
+                                        <div>
+                                            @comment.Description
+                                        </div>
+
+                                        @if (_signInManager.IsSignedIn(User) && Guid.Parse(_userManager.GetUserId(User)) == comment.UserId)
+                                        {
+                                            <div class="mt-2">
+                                                <a class="text-secondary text-decoration-none me-2 action-btn"
+                                                   data-bs-toggle="modal"
+                                                   data-bs-target="#CommentModal"
+                                                   data-action="edit"
+                                                   data-id="@comment.Id"
+                                                   data-description="@comment.Description"
+                                                   data-urlHandle="@Model.UrlHandle"
+                                                   href="#"><i class="bi bi-pencil-square"></i></a>
+
+                                                <a class="text-secondary text-decoration-none me-2 action-btn"
+                                                   data-bs-toggle="modal"
+                                                   data-bs-target="#CommentModal"
+                                                   data-action="delete"
+                                                   data-id="@comment.Id"
+                                                   data-urlHandle="@Model.UrlHandle"
+                                                   href="#"><i class="bi bi-trash3-fill"></i></a>
+
+                                            </div>
+                                        }
+
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+
+                </div>
+
+            }
+            else
+            {
+                <p>Blog Post not found</p>
+            }
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Comment Modal -->
+<div class="modal fade" id="CommentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" id="modalContent">
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts
+{
+    <script>
+
+        // Comment Modal
+
+          document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+
+                const action = this.getAttribute('data-action');
+                const id = this.getAttribute('data-id');
+                const description = this.getAttribute('data-description');
+                const urlHandle = this.getAttribute('data-urlHandle');
+                const modalContent = document.getElementById('modalContent');
+
+
+                if (action === 'edit') {
+
+                    modalContent.innerHTML = `
+
+                <form method="post" action="/Comments/Update">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Edit Comment</h1>
+                </div>
+                <div class="modal-body">
+                        <input type="hidden" name="Id" value="${id}" />
+                        <input type="hidden" name="UrlHandle" value="${urlHandle}" />
+                        <input type="text" name="Description" value="${description}" class="form-control shadow-none" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Update</button>
+                </div>
+            </form>
+                    `;
+                }
+                else if (action === 'delete') {
+
+                    modalContent.innerHTML = `
+
+                <form method="post" action="/Comments/Delete">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Delete Comment</h1>
+                </div>
+                <div class="modal-body">
+                        <input type="hidden" name="Id" value="${id}" />
+                        <input type="hidden" name="UrlHandle" value="${urlHandle}" />
+                        <p>Are you sure delete this comment?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+                    `;
+                }
+
+            });
+
+        });
+
+
+
+        const btnLikeElement = document.getElementById('btnLike');
+        const totalLikeElement = document.getElementById('likes');
+
+        async function getTotalLikes(){
+            fetch('/api/Likes/@Model.Id/totalLikes', {
+                method: 'GET',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Accept': '*/*'
+                }
+            })
+            .then(data => data.json())
+            .then(result => totalLikeElement.innerHTML = result);
+        }
+
+        async function toggleLike(){
+            const response = await fetch('/api/Likes/Toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    blogPostId: '@Model.Id',
+                    userId: '@_userManager.GetUserId(User)'
+                })
+           });
+
+            const isLiked = await response.json();
+
+            if (isLiked)
+            {
+                btnLikeElement.innerHTML = '<i class="bi bi-hand-thumbs-up-fill fs-4"></i>';
+            }
+            else
+            {
+                btnLikeElement.innerHTML = '<i class="bi bi-hand-thumbs-up fs-4"></i>';
+            }
+
+            getTotalLikes();
+         }
+
+        btnLikeElement.addEventListener('click', toggleLike);
+    </script>
+}

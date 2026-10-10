@@ -1,0 +1,18 @@
+﻿using Bloggie.Web.Models.Domain;
+using Microsoft.EntityFrameworkCore;
+
+namespace Bloggie.Web.Data
+{
+    public class BloggieDbContext : DbContext
+    {
+        public BloggieDbContext(DbContextOptions<BloggieDbContext> options) : base(options)
+        {
+        }
+
+
+        public DbSet<Blog> BlogPosts { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<Like> BlogPostLike { get; set; }
+        public DbSet<Comment> BlogPostComment { get; set; }
+    }
+}

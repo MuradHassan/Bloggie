@@ -1,0 +1,48 @@
+﻿@model Bloggie.Web.Models.ViewModels.EditTagViewModel
+
+@{
+    ViewData["Title"] = "Tags-Edit";
+}
+
+<div class="bg-secondary bg-opacity-10 py-2">
+    <div class="container">
+        <h1>
+            Edit Tag - Admin Functionality
+        </h1>
+    </div>
+</div>
+
+<div class="container m-auto py-5 row justify-content-center">
+
+    @if (Model != null)
+    {
+        <div class="col-lg-4 mt-4 p-4 border border-2 rounded-3">
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">Id</label>
+                    <input type="text" id="id" class="form-control shadow-none" readonly asp-for="Id" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input type="text" id="name" class="form-control shadow-none" asp-for="Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">DisplayName</label>
+                    <input type="text" id="displayName" class="form-control shadow-none" asp-for="DisplayName" />
+                </div>
+                <div>
+                    <div class="d-flex">
+                        <a class="btn btn-secondary mt-2 shadow-none" asp-controller="Tags" asp-action="List">Back</a>
+                        <button type="submit" class="btn btn-success mt-2 ms-2 shadow-none">Update</button>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        <p>Tag not found</p>
+    }
+
+</div>

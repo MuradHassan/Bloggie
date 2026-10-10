@@ -1,0 +1,292 @@
+﻿@model Bloggie.Web.Models.ViewModels.UserViewModel
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+@* Header *@
+<div class="bg-secondary bg-opacity-10 py-2">
+    <div class="container">
+        <h1>
+            Users - Admin Functionality
+        </h1>
+    </div>
+</div>
+
+@* Search & Add *@
+<div class="container mt-5 mb-4">
+    <div class="row justify-content-between">
+
+        @* Search *@
+        <div class="col-lg-4">
+            <form method="get" asp-controller="Users" asp-action="List">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="search" value="@ViewBag.Search" class="form-control rounded-end rounded-pill shadow-none" />
+                    <button class="btn btn-dark shadow-none rounded-start rounded-pill" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @* Add Button *@
+        <div class="col-lg-6 justify-content-end text-end action-btn">
+            <button class="btn btn-dark btn-lg"
+                    data-bs-toggle="modal"
+                    data-bs-target="#userModal"
+                    data-action="add">
+                <i class="bi bi-plus-circle"></i>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+@* List *@
+<div>
+    <div class="container">
+
+        @if (Model.Users != null && Model.Users.Any())
+        {
+            @* Table *@
+            <table class="table table-striped text-center">
+                <thead class="bg-dark text-light">
+                    <tr>
+                        <th>Id</th>
+                        <th>
+                            User Name
+                            @* Sort By User Name *@
+                            <span>
+                                @if (ViewBag.Sort == "Asc")
+                                {
+                                    <span>
+                                        <a class="text-light"
+                                           asp-controller="Users"
+                                           asp-action="List"
+                                           asp-route-sort="Desc"
+                                           asp-route-search="@ViewBag.Search"
+                                           asp-route-pageNumber="@(ViewBag.CurrentPage)">
+                                            <i class="bi bi-arrow-down"></i>
+                                        </a>
+                                    </span>
+                                }
+                                else if (ViewBag.Sort == "Desc")
+                                {
+                                    <span>
+                                        <a class="text-light"
+                                           asp-controller="Users"
+                                           asp-action="List"
+                                           asp-route-sort="Asc"
+                                           asp-route-search="@ViewBag.Search"
+                                           asp-route-pageNumber="@(ViewBag.CurrentPage)">
+                                            <i class="bi bi-arrow-up"></i>
+                                        </a>
+                                    </span>
+                                }
+
+                            </span>
+                        </th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr>
+                            <td>@user.Id</td>
+                            <td>@user.UserName</td>
+                            <td>@user.EmailAddress</td>
+                            <td>@user.RoleName</td>
+
+                            <td>
+                                <button class="btn btn-warning me-2 action-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#userModal"
+                                        data-action="edit"
+                                        data-id="@user.Id"
+                                        data-username="@user.UserName"
+                                        data-email="@user.EmailAddress">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+
+                                <button class="btn btn-danger action-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#userModal"
+                                        data-action="delete"
+                                        data-id="@user.Id">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </td>
+
+                        </tr>
+                    }
+
+
+
+                </tbody>
+            </table>
+
+            @* Pagination *@
+            <nav aria-label="Page navigation example" class=" d-flex justify-content-center mt-4">
+                <ul class="pagination">
+
+                    @* Previous *@
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link text-light shadow-none @(ViewBag.CurrentPage == 1 ? "bg-secondary" : "bg-dark")"
+                           asp-action="List"
+                           asp-route-pageNumber="@(ViewBag.CurrentPage - 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-sort="@ViewBag.Sort">
+                            Previous
+                        </a>
+                    </li>
+
+                    @* Page Numbers *@
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item  @(i == ViewBag.CurrentPage ? "disabled" : "") ">
+                            <a class="page-link shadow-none @(i == ViewBag.CurrentPage ? "bg-secondary" : "bg-dark") text-light "
+                               asp-action="List"
+                               asp-route-pageNumber="@i"
+                               asp-route-search="@ViewBag.Search"
+                               asp-route-sort="@ViewBag.Sort">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    @* Next *@
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link text-light shadow-none @(ViewBag.CurrentPage == ViewBag.TotalPages ? "bg-secondary" : "bg-dark")"
+                           asp-action="List"
+                           asp-route-pageNumber="@(ViewBag.CurrentPage + 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-sort="@ViewBag.Sort">
+                            Next
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
+        }
+        else
+        {
+            <p>No users found!</p>
+        }
+
+    </div>
+
+</div>
+
+@* Modal *@
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            @* Add & Edit Form *@
+            <form method="post" id="addAndEditForm" class="d-none" asp-controller="Users" asp-action="Add">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="modalTitle"></h1>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" asp-for="Id" id="userId" />
+                    <div class="mb-3">
+                        <label class="form-label">UserName</label>
+                        <input type="text" class="form-control shadow-none" asp-for="UserName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="text" class="form-control shadow-none" asp-for="Email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control shadow-none" asp-for="Password" />
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" id="checkUserRole" class="form-check-input" value="User" checked disabled />
+                            <label class="form-check-label" for="checkUserRole">User Role</label>
+                        </div>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" id="checkAdminRole" class="form-check-input" asp-for="AdminRoleCheckbox" />
+                                <label class="form-check-label" for="checkAdminRole">Admin Role</label>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="submitBtn" class="btn btn-success"></button>
+                </div>
+            </form>
+
+
+            @* DeleteForm *@
+            <form method="post" id="deleteForm" class="d-none" asp-controller="Users" asp-action="Delete">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5 id=" userModalLabel"">Delete User</h1>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="deleteId" />
+                    <p>Are you sure delete this user?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+
+    document.getElementById('userModal').addEventListener('show.bs.modal', function (event)
+    {
+
+        const button = event.relatedTarget;
+        const action = button.getAttribute('data-action');
+
+        // hide all forms
+        document.getElementById('deleteForm').classList.add('d-none');
+        document.getElementById('addAndEditForm').classList.add('d-none');
+
+        if (action === 'add') {
+            document.getElementById('addAndEditForm').classList.remove('d-none');
+            document.getElementById('modalTitle').innerText = 'Create New User';
+            document.getElementById('submitBtn').innerText = 'Create';
+            document.getElementById('addForm').action = '/AdminUsers/Add';
+            document.getElementById('userId').value = '';
+            document.getElementById('UserName').value = '';
+            document.getElementById('Email').value = '';
+            document.getElementById('Password').value = '';
+            document.getElementById('Password').closest('.mb-3').style.display = 'block';
+        }
+        if (action === 'delete') {
+            document.getElementById('deleteForm').classList.remove('d-none');
+            document.getElementById('deleteId').value = button.getAttribute('data-id');
+        }
+        if (action === 'edit') {
+
+            document.getElementById('addAndEditForm').classList.remove('d-none');
+            document.getElementById('modalTitle').innerText = 'Edit User';
+            document.getElementById('submitBtn').innerText = 'Update';
+            document.getElementById('addAndEditForm').action = '/AdminUsers/Edit';
+            document.getElementById('userId').value = button.getAttribute('data-id');
+            document.getElementById('UserName').value = button.getAttribute('data-username');
+            document.getElementById('Email').value = button.getAttribute('data-email');
+            document.getElementById('Password').value= '';
+        }
+
+    });
+
+</script>

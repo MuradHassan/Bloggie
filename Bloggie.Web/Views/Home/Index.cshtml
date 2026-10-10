@@ -1,0 +1,125 @@
+﻿@model Bloggie.Web.Models.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+
+@* Hero Section *@
+<div class="container col-lg-8 px-4 py-5">
+    <div class="row align-items-center g-5 py-5">
+
+        <div class="col-lg-6">
+            <h1 class="display-1 fw-bold lh-1 mb-3">Bloggie</h1>
+            <h2 class="display-6 fw-bold">The Dev Blog</h2>
+            <p class="lead">
+                Bloggie is the home to coding blogs covering a vast rang of topics like HTML, CSS, Javascript, ASP.NET, C#, Angular etc.
+                Want to read the latest dev articlaes? Join the bloggie app and get weekly blogs in your email.
+            </p>
+        </div>
+        <div class="col-lg-6">
+            <img src="https://images.pexels.com/photos/57690/pexels-photo-57690.jpeg"
+                 alt="Bloggie - Dev bloges"
+                 class="d-block mx-auto img-fluid" width="400" />
+        </div>
+
+    </div>
+</div>
+
+@* Search *@
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <form method="get" asp-controller="Home" asp-action="Index">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="searchQuery" value="@ViewBag.SearchQuery" class="form-control rounded-end rounded-pill shadow-none" />
+                    <button class="btn btn-dark shadow-none rounded-start rounded-pill" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Tags *@
+<div class="container ">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="row justify-content-center">
+                <div class="col-6 d-flex justify-content-center">
+                    @foreach (var tag in Model.Tags)
+                    {
+                        var isSelected = ViewBag.TagName == tag.Name;
+                        <a asp-controller="Home"
+                           asp-action="Index"
+                           asp-route-tagName="@(isSelected ? null : tag.Name)"
+                           class="badge @(isSelected ? "bg-primary" : "bg-dark") me-1 text-decoration-none text-light">
+                            @tag.Name
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@* Blogs *@
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @if (Model != null && Model.BlogPost.Any())
+            {
+                foreach (var blogPost in Model.BlogPost)
+                {
+                    <div class="mb-5 bg-light box-shadow p-5">
+
+                        @* Blog Header & Image *@
+                        <a class="h3 text-decoration-none text-black-50"
+                           asp-controller="BlogDetails"
+                           asp-action="Index"
+                           asp-route-urlhandel="@blogPost.UrlHandle">
+
+                            <img src="@blogPost.FeaturedImageUrl" alt="@blogPost.Heading" class="mb-2 d-block img-fluid" />
+
+                            @blogPost.Heading
+                        </a>
+
+                        @* Blog Author & Date *@
+                        <div class="row justify-content-between mt-3">
+                            <div class="col-7">
+                                <p class="fw-bold">
+                                    Author: @blogPost.Author
+                                    <br />
+                                    Published Date: @blogPost.PublishedDate.ToShortDateString()
+                                </p>
+                            </div>
+
+                            <div class="col-5 text-end">
+
+                                @foreach (var tag in blogPost.Tags)
+                                {
+                                    <Span class="badge bg-secondary me-1">@tag.Name</Span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        @* Blog Descripttion *@
+                        <p class="mb-3">@blogPost.ShortDescription</p>
+
+                        @* Likes & Comments *@
+                        <div>
+                            <i class="bi bi-hand-thumbs-up fs-4"></i> @blogPost.Likes.Count()
+                            <i class="bi bi-chat fs-4 ms-2"></i> @blogPost.Comments.Count()
+                        </div>
+
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+</div>
